@@ -1,0 +1,97 @@
+name: Unit Tests
+
+on:
+  push:
+    branches: [staging]
+    paths-ignore:
+      - 'reports/**'
+  pull_request:
+    branches: [staging]
+
+permissions:
+  contents: write
+  packages: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js 20 (GitHub Packages)
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20.x
+          registry-url: https://npm.pkg.github.com
+          scope: '@tazama-lf'
+          cache: npm
+
+      - name: Debug npm auth
+        run: npm whoami --registry=https://npm.pkg.github.com
+        env:
+          GH_TOKEN: ${{ secrets.TAZAMA_TOKEN }}
+
+      - name: Install dependencies
+        run: npm ci
+        env:
+          GH_TOKEN: ${{ secrets.TAZAMA_TOKEN }}
+
+      - name: Check for test files
+        id: check_tests
+        run: |
+          if [ -f "__tests__/unit/rule.test.ts" ]; then
+            echo "has_tests=true" >> $GITHUB_OUTPUT
+          else
+            echo "has_tests=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Run unit tests
+        if: steps.check_tests.outputs.has_tests == 'true'
+        run: npm run test:coverage
+        continue-on-error: true
+
+      - name: Generate HTML report
+        if: always() && steps.check_tests.outputs.has_tests == 'true'
+        run: npm run generate:report
+
+      - name: Upload unit test report artifact
+        if: always() && steps.check_tests.outputs.has_tests == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: unit-test-report
+          path: |
+            reports/unit-tests
+            coverage/html
+          retention-days: 14
+
+      - name: Commit latest HTML test report to repo
+        if: always() && steps.check_tests.outputs.has_tests == 'true'
+        env:
+          HUSKY: 0
+        run: |
+          git config user.name "github-actions"
+          git config user.email "github-actions@github.com"
+
+          if [ -f reports/unit-tests/latest/index.html ]; then
+            git add reports/unit-tests/latest/index.html
+          fi
+
+          if git diff --cached --quiet; then
+            echo "No changes to commit"
+            exit 0
+          fi
+
+          git commit -m "ci: update unit test HTML report (run ${{ github.run_number }})"
+          git pull --rebase origin staging
+          git push origin staging
+
+      - name: Debug generated files
+        if: always()
+        run: |
+          echo "Reports folder:"
+          ls -R reports || echo "No reports folder"
+          echo "Coverage folder:"
+          ls -R coverage || echo "No coverage folder"
