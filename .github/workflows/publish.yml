@@ -47,7 +47,7 @@
             echo "@tazama-lf:registry=https://npm.pkg.github.com" >> ~/.npmrc
             echo "//npm.pkg.github.com/:_authToken=${GH_TOKEN}" >> ~/.npmrc
           env:
-            GH_TOKEN: ${{ secrets.TAZAMA_TOKEN }}
+            GH_TOKEN: ${{ secrets.MyTazamaToken }}
 
         - name: Auto-increment version
           if: steps.check_rule.outputs.has_rule == 'true'
@@ -62,13 +62,13 @@
               npm version patch --no-git-tag-version
             fi
           env:
-            GH_TOKEN: ${{ secrets.TAZAMA_TOKEN }}
+            GH_TOKEN: ${{ secrets.MyTazamaToken }}
 
         - name: Install dependencies
           if: steps.check_rule.outputs.has_rule == 'true'
           run: npm ci
           env:
-            GH_TOKEN: ${{ secrets.TAZAMA_TOKEN }}
+            GH_TOKEN: ${{ secrets.MyTazamaToken }}
 
         - name: Build package
           if: steps.check_rule.outputs.has_rule == 'true'
@@ -84,7 +84,7 @@
           if: steps.check_rule.outputs.has_rule == 'true'
           run: npm publish --registry=https://npm.pkg.github.com --access public
           env:
-            GH_TOKEN: ${{ secrets.TAZAMA_TOKEN }}
+            GH_TOKEN: ${{ secrets.MyTazamaToken }}
 
         - name: Summary
           if: steps.check_rule.outputs.has_rule == 'true'

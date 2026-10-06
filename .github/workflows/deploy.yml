@@ -44,7 +44,7 @@ jobs:
           cd ..
           echo "Clone completed."
         env:
-          GH_TOKEN: ${{ secrets.TAZAMA_TOKEN }}
+          GH_TOKEN: ${{ secrets.MyTazamaToken }}
 
       # Step 3: Duplicate Rule Executer Folder to 'rule-executer-$RULE_NAME'
       - name: Duplicate Rule Executer Folder
@@ -95,7 +95,7 @@ jobs:
           echo "=== ACTIVE npmrc ==="
           cat "$NPMRC_PATH"
         env:
-          GH_TOKEN: ${{ secrets.TAZAMA_TOKEN }}
+          GH_TOKEN: ${{ secrets.MyTazamaToken }}
 
       - name: Generate package-lock.json for Docker build
         run: |
@@ -103,7 +103,7 @@ jobs:
           cd rule-executer-$RULE_NAME
           npm install --ignore-scripts --package-lock-only
         env:
-          GH_TOKEN: ${{ secrets.TAZAMA_TOKEN }}
+          GH_TOKEN: ${{ secrets.MyTazamaToken }}
 
       - name: Install Latest Rule Version
         run: |
@@ -112,7 +112,7 @@ jobs:
           npm install --save-exact rule@npm:@$ORG/$RULE_NAME@latest --ignore-scripts
           echo "✅ Installed: $(npm list rule --depth=0)"
         env:
-          GH_TOKEN: ${{ secrets.TAZAMA_TOKEN }}
+          GH_TOKEN: ${{ secrets.MyTazamaToken }}
 
       - name: Extract Rule Version
         run: |
@@ -197,7 +197,7 @@ jobs:
 
           echo "✅ Docker image pushed to Docker Hub."
         env:
-          GH_TOKEN: ${{ secrets.TAZAMA_TOKEN }}
+          GH_TOKEN: ${{ secrets.MyTazamaToken }}
 
       # Step 8: Pull from Docker Hub and Deploy Container on self-hosted runner
       - name: Pull and Deploy Container from Docker Hub
